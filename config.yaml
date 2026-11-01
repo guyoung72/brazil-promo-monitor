@@ -1,0 +1,118 @@
+# 브라질 이커머스 & D2C 프로모션 모니터 설정
+# ⚠️ 아래 URL은 공개 URL 패턴 기준 초안입니다. 첫 실행 전 `python check_urls.py`로
+#    각 페이지가 정상 열리는지 확인하고, 깨진 URL은 실제 카테고리 페이지 주소로 바꿔 주세요.
+
+timezone: America/Sao_Paulo
+model: claude-opus-5-5
+effort: medium              # low | medium | high  (비용↔정확도)
+use_fallbacks: true         # 모델이 요청을 거절할 때 서버 측 대체 모델로 자동 재시도
+
+capture:
+  viewport: {width: 1366, height: 900}
+  max_page_height: 6000     # 스크린샷 최대 높이(px). 이 아래는 잘라냄
+  tile_height: 1500         # AI에 보낼 때 자르는 단위
+  max_tiles: 4
+  page_timeout_ms: 45000
+  delay_between_pages_s: 5  # 사이트 부하 방지용 대기
+
+# 비교 기준 CEP(우편번호). 사이트가 CEP 입력을 요구하면 이 값을 사용합니다(상파울루 Av. Paulista).
+cep: "01310-100"
+
+categories: [tv, refrigerator, washer]
+
+sites:
+  # ---------- 자사(기준선) ----------
+  - id: lg
+    name: LG.com Brasil
+    type: self
+    pages:
+      home: https://www.lg.com/br/promocoes/
+      tv: https://www.lg.com/br/tvs/
+      refrigerator: https://www.lg.com/br/geladeiras/
+      washer: https://www.lg.com/br/lavadoras-e-secadoras/
+
+  # ---------- 이커머스 ----------
+  - id: mercadolivre
+    name: Mercado Livre
+    type: ecommerce
+    pages:
+      home: https://www.mercadolivre.com.br/ofertas
+      tv: https://lista.mercadolivre.com.br/smart-tv
+      refrigerator: https://lista.mercadolivre.com.br/geladeira
+      washer: https://lista.mercadolivre.com.br/maquina-de-lavar
+  - id: magalu
+    name: Magazine Luiza
+    type: ecommerce
+    pages:
+      home: https://www.magazineluiza.com.br/
+      tv: https://www.magazineluiza.com.br/busca/smart+tv/
+      refrigerator: https://www.magazineluiza.com.br/busca/geladeira/
+      washer: https://www.magazineluiza.com.br/busca/maquina+de+lavar/
+  - id: fastshop
+    name: Fast Shop
+    type: ecommerce
+    pages:
+      home: https://www.fastshop.com.br/
+      tv: https://www.fastshop.com.br/web/s?q=smart%20tv
+      refrigerator: https://www.fastshop.com.br/web/s?q=geladeira
+      washer: https://www.fastshop.com.br/web/s?q=lavadora
+  - id: carrefour
+    name: Carrefour
+    type: ecommerce
+    pages:
+      home: https://www.carrefour.com.br/
+      tv: https://www.carrefour.com.br/busca/smart%20tv
+      refrigerator: https://www.carrefour.com.br/busca/geladeira
+      washer: https://www.carrefour.com.br/busca/maquina%20de%20lavar
+  - id: webcontinental
+    name: Webcontinental
+    type: ecommerce
+    pages:
+      home: https://www.webcontinental.com.br/
+      tv: https://www.webcontinental.com.br/busca?q=smart%20tv
+      refrigerator: https://www.webcontinental.com.br/busca?q=geladeira
+      washer: https://www.webcontinental.com.br/busca?q=lavadora
+  - id: amazon
+    name: Amazon Brasil
+    type: ecommerce
+    pages:
+      home: https://www.amazon.com.br/deals
+      tv: https://www.amazon.com.br/s?k=smart+tv
+      refrigerator: https://www.amazon.com.br/s?k=geladeira
+      washer: https://www.amazon.com.br/s?k=maquina+de+lavar
+
+  # ---------- 경쟁 제조사 D2C ----------
+  - id: samsung
+    name: Samsung Brasil
+    type: d2c
+    pages:
+      home: https://www.samsung.com/br/offer/
+      tv: https://www.samsung.com/br/tvs/all-tvs/
+      refrigerator: https://www.samsung.com/br/refrigerators/all-refrigerators/
+      washer: https://www.samsung.com/br/washers-and-dryers/all-washers-and-dryers/
+  - id: electrolux
+    name: Electrolux
+    type: d2c
+    pages:
+      home: https://loja.electrolux.com.br/
+      refrigerator: https://loja.electrolux.com.br/geladeiras
+      washer: https://loja.electrolux.com.br/lavadoras
+      # Electrolux는 TV를 판매하지 않음
+  - id: midea
+    name: Midea
+    type: d2c
+    pages:
+      home: https://www.midea.com.br/
+      refrigerator: https://www.midea.com.br/geladeiras
+      washer: https://www.midea.com.br/lavadoras
+  - id: tcl
+    name: TCL
+    type: d2c
+    pages:
+      home: https://www.tcl.com/br/pt
+      tv: https://www.tcl.com/br/pt/tvs
+
+teams:
+  # Teams 채널의 Workflows(Power Automate) 웹훅 URL은 환경변수 TEAMS_WEBHOOK_URL 로 넣습니다.
+  dashboard_url: "http://사내서버주소/promo-dashboard/"   # Teams 카드의 '대시보드 열기' 버튼 링크
+  price_drop_alert_pct: 5     # 전일 대비 이 % 이상 가격 하락 시 알림
