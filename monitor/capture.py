@@ -17,7 +17,8 @@ UA = (
 COOKIE_BUTTONS = ["Aceitar", "Aceito", "Aceitar todos", "Aceitar cookies", "Concordo",
                   "Entendi", "OK", "Continuar", "Fechar"]
 BLOCK_MARKERS = ["captcha", "não sou um robô", "nao sou um robo", "access denied",
-                 "acesso negado", "unusual traffic", "robot check", "pardon our interruption"]
+                 "acesso negado", "unusual traffic", "robot check", "pardon our interruption",
+                 "para continuar, acesse sua conta"]  # Mercado Livre 로그인 벽(account-verification)
 
 
 @dataclass
@@ -107,7 +108,8 @@ class Browser:
             text = page.evaluate("document.body ? document.body.innerText : ''") or ""
             low = text[:5000].lower()
             code = resp.status if resp else 0
-            blocked = code in (403, 429) or any(m in low for m in BLOCK_MARKERS)
+            blocked = (code in (403, 429) or any(m in low for m in BLOCK_MARKERS)
+                       or "account-verification" in page.url)
 
             height = min(page.evaluate("document.documentElement.scrollHeight"), max_h)
             png = page.screenshot(full_page=True, clip={

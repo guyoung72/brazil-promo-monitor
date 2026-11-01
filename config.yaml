@@ -27,9 +27,9 @@ sites:
     type: self
     pages:
       home: https://www.lg.com/br/promocoes/
-      tv: https://www.lg.com/br/tvs/
-      refrigerator: https://www.lg.com/br/geladeiras/
-      washer: https://www.lg.com/br/lavadoras-e-secadoras/
+      tv: https://www.lg.com/br/tvs-e-soundbars/smart-tvs/
+      refrigerator: https://www.lg.com/br/geladeiras/todas-geladeiras/
+      washer: https://www.lg.com/br/lavanderia/todas-lavadoras/
 
   # ---------- 이커머스 ----------
   - id: mercadolivre
@@ -52,10 +52,10 @@ sites:
     name: Fast Shop
     type: ecommerce
     pages:
-      home: https://www.fastshop.com.br/
-      tv: https://www.fastshop.com.br/web/s?q=smart%20tv
-      refrigerator: https://www.fastshop.com.br/web/s?q=geladeira
-      washer: https://www.fastshop.com.br/web/s?q=lavadora
+      home: https://site.fastshop.com.br/
+      tv: https://site.fastshop.com.br/video/tv
+      refrigerator: https://site.fastshop.com.br/eletrodomesticos/geladeira-e-freezer
+      washer: https://site.fastshop.com.br/eletrodomesticos/maquina-de-lavar-roupa
   - id: carrefour
     name: Carrefour
     type: ecommerce
@@ -68,10 +68,10 @@ sites:
     name: Webcontinental
     type: ecommerce
     pages:
-      home: https://www.webcontinental.com.br/
-      tv: https://www.webcontinental.com.br/busca?q=smart%20tv
-      refrigerator: https://www.webcontinental.com.br/busca?q=geladeira
-      washer: https://www.webcontinental.com.br/busca?q=lavadora
+      home: https://www.webcontinental.com.br/selecao-cupons-desconto   # 메인(/)은 헤드리스에서 빈 화면으로 렌더링됨
+      tv: https://www.webcontinental.com.br/tv-audio-e-video/televisores
+      refrigerator: https://www.webcontinental.com.br/eletrodomesticos/refrigeradores-geladeiras
+      washer: https://www.webcontinental.com.br/eletrodomesticos/lavadoras-de-roupas
   - id: amazon
     name: Amazon Brasil
     type: ecommerce
@@ -103,8 +103,8 @@ sites:
     type: d2c
     pages:
       home: https://www.midea.com.br/
-      refrigerator: https://www.midea.com.br/geladeiras
-      washer: https://www.midea.com.br/lavadoras
+      refrigerator: https://www.midea.com.br/eletrodomesticos/geladeira
+      washer: https://www.midea.com.br/eletrodomesticos/maquina-de-lavar
   - id: tcl
     name: TCL
     type: d2c
