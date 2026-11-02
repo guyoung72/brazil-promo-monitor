@@ -70,7 +70,8 @@ def main() -> int:
         from monitor.extract import summarize_day
         summary = summarize_day(cfg, report.digest_for_llm(d))
     except Exception as e:
-        summary = f"- (AI 요약 생성 실패: {type(e).__name__})"
+        summary = {"ko": f"- (AI 요약 생성 실패: {type(e).__name__})",
+                   "en": f"- (AI summary failed: {type(e).__name__})"}
 
     archive = OUT / "archive" / f"{run_date}.html"
     report.render_html(d, summary, archive, OUT / "screens")
@@ -78,7 +79,7 @@ def main() -> int:
     print(f"대시보드: {OUT / 'index.html'}  (보관본: {archive})")
 
     if not a.no_teams:
-        teams.post(d, summary, cfg["teams"]["dashboard_url"])
+        teams.post(d, summary["ko"], cfg["teams"]["dashboard_url"])
 
     # 오래된 스크린샷 정리(90일 초과)
     for p in (OUT / "screens").glob("*"):

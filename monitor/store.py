@@ -26,6 +26,11 @@ CREATE INDEX IF NOT EXISTS ix_c ON campaigns(run_date, site_id, page_key);
 CREATE INDEX IF NOT EXISTS ix_p ON products(run_date, site_id);
 """
 
+# 기존 DB에 나중에 추가된 컬럼(영문 대시보드용). 없으면 ALTER TABLE로 추가한다.
+MIGRATIONS = [("pages", "page_note_en", "TEXT"),
+              ("campaigns", "title_en", "TEXT"),
+              ("campaigns", "conditions_en", "TEXT")]
+
 
 class Store:
     def __init__(self, path: Path):
@@ -33,6 +38,11 @@ class Store:
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(DDL)
+        for table, col, typ in MIGRATIONS:
+            cols = {r["name"] for r in self.db.execute(f"PRAGMA table_info({table})")}
+            if col not in cols:
+                self.db.execute(f"ALTER TABLE {table} ADD COLUMN {col} {typ}")
+        self.db.commit()
 
     def previous_date(self, run_date: str) -> str | None:
         r = self.db.execute("SELECT MAX(run_date) d FROM pages WHERE run_date < ? AND status='ok'",
@@ -89,8 +99,10 @@ class Store:
                   data: dict | None, previous: list[dict]) -> None:
         self.clear_page(run_date, site_id, page_key)
         note = (data or {}).get("page_note", "")
-        self.db.execute("INSERT INTO pages VALUES (?,?,?,?,?,?,?,?)",
-                        (run_date, site_id, page_key, url, status, error, screenshot, note))
+        note_en = (data or {}).get("page_note_en", "")
+        self.db.execute("INSERT INTO pages (run_date, site_id, page_key, url, status, error, screenshot,"
+                        " page_note, page_note_en) VALUES (?,?,?,?,?,?,?,?,?)",
+                        (run_date, site_id, page_key, url, status, error, screenshot, note, note_en))
         if data:
             prev_first = {p["id"]: p["first_seen"] for p in previous}
             for c in data["campaigns"]:
@@ -99,11 +111,13 @@ class Store:
                 self.db.execute(
                     "INSERT INTO campaigns (run_date, site_id, page_key, title_pt, title_ko, mechanics,"
                     " discount_text, categories, brands, conditions_ko, valid_until, is_hero, status,"
-                    " previous_id, first_seen) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    " previous_id, first_seen, title_en, conditions_en)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (run_date, site_id, page_key, c["title_pt"], c["title_ko"],
                      json.dumps(c["mechanics"]), c["discount_text"], json.dumps(c["categories"]),
                      json.dumps(c["brands"], ensure_ascii=False), c["conditions_ko"], c["valid_until"],
-                     int(c["is_hero"]), status_c, pid, prev_first.get(pid, run_date)))
+                     int(c["is_hero"]), status_c, pid, prev_first.get(pid, run_date),
+                     c.get("title_en"), c.get("conditions_en")))
             for cid in data["ended_campaign_ids"]:
                 if cid in prev_first:
                     self.db.execute("INSERT INTO ended_campaigns VALUES (?,?)", (run_date, cid))
@@ -113,3 +127,24 @@ class Store:
                                  p["list_price"], p["sale_price"], p["pix_price"], p["discount_pct"],
                                  p["installments"], p["seller"]))
         self.db.commit()
+
+    def campaigns_until(self, run_date: str) -> list[dict]:
+        """캘린더용: 기준일까지의 모든 캠페인 기록(날짜순)."""
+        rows = [dict(r) for r in self.db.execute(
+            "SELECT * FROM campaigns WHERE run_date<=? ORDER BY run_date, id", (run_date,))]
+        for r in rows:
+            for k in ("mechanics", "categories", "brands"):
+                r[k] = json.loads(r[k] or "[]")
+        return rows
+
+    def ended_until(self, run_date: str) -> dict[int, str]:
+        """campaign_id → 종료가 확인된 날짜(그날 화면에서 사라짐)."""
+        return {r["campaign_id"]: r["run_date"] for r in self.db.execute(
+            "SELECT campaign_id, MIN(run_date) run_date FROM ended_campaigns WHERE run_date<=? "
+            "GROUP BY campaign_id", (run_date,))}
+
+    def last_ok_dates(self, run_date: str) -> dict[tuple[str, str], str]:
+        """(site_id, page_key) → 기준일까지 마지막으로 정상 수집한 날."""
+        return {(r["site_id"], r["page_key"]): r["d"] for r in self.db.execute(
+            "SELECT site_id, page_key, MAX(run_date) d FROM pages WHERE run_date<=? AND status='ok' "
+            "GROUP BY site_id, page_key", (run_date,))}
